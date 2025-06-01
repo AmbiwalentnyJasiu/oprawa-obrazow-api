@@ -1,0 +1,6 @@
+@OprawaObrazow_HostAddress = http://localhost:5167
+
+GET {{OprawaObrazow_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

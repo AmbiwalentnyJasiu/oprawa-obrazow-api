@@ -21,36 +21,50 @@ public class AuditContext(DbContextOptions<AuditContext> options, IConfiguration
         modelBuilder.Entity<ClientAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("clients_pk");
+            
+            entity.Property(e => e.EntityData).HasColumnType("nvarchar(max)");
         });
         
         modelBuilder.Entity<DeliveryAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("deliveries_pk");
+            
+            entity.Property(e => e.EntityData).HasColumnType("nvarchar(max)");
         });
         
         modelBuilder.Entity<FrameAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("frame_pk");
+            
+            entity.Property(e => e.EntityData).HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<FramePieceAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("frame_pieces_pk");
+            
+            entity.Property(e => e.EntityData).HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<OrderAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("orders_pk");
+            
+            entity.Property(e => e.EntityData).HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<SupplierAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("suppliers_pk");
+            
+            entity.Property(e => e.EntityData).HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<UserAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("users_pk");
+            
+            entity.Property(e => e.EntityData).HasColumnType("nvarchar(max)");
         });
     }
 }

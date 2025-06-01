@@ -1,9 +1,11 @@
 ﻿using System.Linq.Expressions;
+using System.Xml.Schema;
 using Microsoft.EntityFrameworkCore;
+using OprawaObrazow.Data;
 
 namespace OprawaObrazow.Repositories;
 
-public class BaseRepository<T>(DbContext dbContext) : IBaseRepository<T>
+public class BaseRepository<T>(DatabaseContext dbContext) : IBaseRepository<T>
     where T : class
 {
     private readonly DbSet<T> _dbSet = dbContext.Set<T>();

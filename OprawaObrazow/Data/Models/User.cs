@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace OprawaObrazow.Data.Models;
 
 [Table("users", Schema = "oprawa")]
+[Index("Username", IsUnique = true)]
 public partial class User : ISoftDelete
 {
     [Key]

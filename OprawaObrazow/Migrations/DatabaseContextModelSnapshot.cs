@@ -327,6 +327,9 @@ namespace OprawaObrazow.Migrations
                     b.HasKey("Id")
                         .HasName("users_pk");
 
+                    b.HasIndex("Username")
+                        .IsUnique();
+
                     b.ToTable("users", "oprawa");
                 });
 

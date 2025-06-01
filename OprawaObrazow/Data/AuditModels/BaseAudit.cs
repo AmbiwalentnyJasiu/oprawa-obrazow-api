@@ -18,7 +18,7 @@ public abstract class BaseAudit
     [Column("record_id")]
     public int RecordId { get; set; }
     
-    [Column("entity_data", TypeName = "json")]
+    [Column("entity_data")]
     public string EntityData { get; set; } = null!;
 
 }

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -11,53 +12,56 @@ namespace OprawaObrazow.Interceptors;
 
 public class AuditInterceptor(AuditContext auditContext, ILogger<AuditInterceptor> logger) : SaveChangesInterceptor
 {
-    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,
+    private readonly ConcurrentDictionary<DbContext, List<(EntityEntry Entry, EntityState State)>> _entitiesBeforeSave = new();
+    private bool _auditInProgress = false;
+    
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,
         InterceptionResult<int> result, CancellationToken cancellationToken = new())
     {
+        if(_auditInProgress) return new ValueTask<InterceptionResult<int>>(result);
+        
+        var context = eventData.Context;
+        if(context is null) return new ValueTask<InterceptionResult<int>>(result);
+        
+        var entries = context.ChangeTracker.Entries()
+            .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Select(e => (e, e.State))
+            .ToList();
+
+        _entitiesBeforeSave[context] = entries;
+        
+        return new ValueTask<InterceptionResult<int>>(result);
+    }
+    
+    public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
+        CancellationToken cancellationToken = new())
+    {
+        if(_auditInProgress) return result;
+        
         var context = eventData.Context;
         if (context is null) return result;
 
         try
         {
-            var entries = context.ChangeTracker.Entries()
-                .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
-                .ToList();
+            _auditInProgress = true;
+            
 
-            var timeStamp = DateTime.UtcNow;
-
-            foreach (var entry in entries)
+            if(_entitiesBeforeSave.TryRemove(context, out var entries) && entries.Count > 0)
             {
-                await CreateAuditEntryAsync(entry, timeStamp, cancellationToken);
+                var timeStamp = DateTime.UtcNow;
+
+                foreach (var (entry, state) in entries)
+                {
+                    CreateAuditEntryAsync(entry, state, timeStamp, cancellationToken);
+                }
+
+                await auditContext.SaveChangesAsync(cancellationToken);
             }
         }
         catch (NotSupportedException nse)
         {
             logger.LogError(nse, "Unsupported entity type or state");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error creating audit entry");
             auditContext.ChangeTracker.Clear();
-        }
-        
-        return result;
-    }
-
-    public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
-        CancellationToken cancellationToken = new())
-    {
-        if (!auditContext.ChangeTracker.HasChanges())
-        {
-            return result;
-        }
-        
-        using var transactionScope = new TransactionScope(TransactionScopeOption.Required, new TransactionOptions{IsolationLevel = IsolationLevel.ReadCommitted}, TransactionScopeAsyncFlowOption.Enabled);
-
-        try
-        {
-            await auditContext.SaveChangesAsync(cancellationToken);
-
-            transactionScope.Complete();
         }
         catch (Exception ex)
         {
@@ -65,32 +69,24 @@ public class AuditInterceptor(AuditContext auditContext, ILogger<AuditIntercepto
             auditContext.ChangeTracker.Clear();
             throw;
         }
+        finally
+        {
+            _auditInProgress = false;
+            _entitiesBeforeSave.Clear();
+        }
 
         return result;
     }
     
-    public override void SaveChangesFailed(DbContextErrorEventData eventData)
+    private void CreateAuditEntryAsync(EntityEntry entry, EntityState state, DateTime timeStamp, CancellationToken cancellationToken)
     {
-        logger.LogWarning("Main SaveChanges failed, clearing audit context");
-        auditContext.ChangeTracker.Clear();
-        base.SaveChangesFailed(eventData);
-    }
-    
-    private async Task CreateAuditEntryAsync(EntityEntry entry, DateTime timeStamp, CancellationToken cancellationToken)
-    {
-        var entityType = entry.Entity.GetType();
-        var entityName = entityType.Name;
-
-        var changeType = entry.State switch
+        var changeType = state switch
         {
             EntityState.Added => "INSERT",
             EntityState.Deleted => "DELETE",
             EntityState.Modified => "UPDATE",
             _ => throw new NotSupportedException($"Unsupported entity state: {entry.State}")
         };
-        
-        var keyName = entry.Metadata.FindPrimaryKey()!.Properties[0].Name;
-        var recordId = (int)entry.Property(keyName).CurrentValue!;
 
         string entityData;
         if (entry.State is EntityState.Deleted)
@@ -107,73 +103,67 @@ public class AuditInterceptor(AuditContext auditContext, ILogger<AuditIntercepto
             entityData = JsonSerializer.Serialize(entry.Entity);
         }
 
-        switch (entityName)
+        BaseAudit auditEntry = entry.Entity switch
         {
-            case "Client":
-                auditContext.Clients.Add(new ClientAudit
-                {
-                    ChangeType = changeType,
-                    ChangedAt = timeStamp,
-                    RecordId = recordId,
-                    EntityData = entityData
-                });
-                break;
-            case "Delivery":
-                auditContext.Deliveries.Add(new DeliveryAudit
-                {
-                    ChangeType = changeType,
-                    ChangedAt = timeStamp,
-                    RecordId = recordId,
-                    EntityData = entityData
-                });
-                break;
-            case "Frame":
-                auditContext.Frames.Add(new FrameAudit
-                {
-                    ChangeType = changeType,
-                    ChangedAt = timeStamp,
-                    RecordId = recordId,
-                    EntityData = entityData
-                });
-                break;
-            case "FramePiece":
-                auditContext.FramePieces.Add(new FramePieceAudit
-                {
-                    ChangeType = changeType,
-                    ChangedAt = timeStamp,
-                    RecordId = recordId,
-                    EntityData = entityData
-                });
-                break;
-            case "Order":
-                auditContext.Orders.Add(new OrderAudit
-                {
-                    ChangeType = changeType,
-                    ChangedAt = timeStamp,
-                    RecordId = recordId,
-                    EntityData = entityData
-                });
-                break;
-            case "Supplier":
-                auditContext.Suppliers.Add(new SupplierAudit
-                {
-                    ChangeType = changeType,
-                    ChangedAt = timeStamp,
-                    RecordId = recordId,
-                    EntityData = entityData
-                });
-                break;
-            case "User":
-                auditContext.Users.Add(new UserAudit
-                {
-                    ChangeType = changeType,
-                    ChangedAt = timeStamp,
-                    RecordId = recordId,
-                    EntityData = entityData
-                });
-                break;
-            default:
-                throw new NotSupportedException($"Unsupported entity type: {entityName}");
-        }
+            Client client => new ClientAudit
+            {
+                ChangeType = changeType,
+                ChangedAt = timeStamp,
+                RecordId = client.Id,
+                EntityData = entityData
+            },
+            
+            Delivery delivery => new DeliveryAudit
+            {
+                ChangeType = changeType,
+                ChangedAt = timeStamp,
+                RecordId = delivery.Id,
+                EntityData = entityData
+            },
+            
+            Frame frame => new FrameAudit
+            {
+                ChangeType = changeType,
+                ChangedAt = timeStamp,
+                RecordId = frame.Id,
+                EntityData = entityData
+            },
+            
+            FramePiece framePiece => new FramePieceAudit
+            {
+                ChangeType = changeType,
+                ChangedAt = timeStamp,
+                RecordId = framePiece.Id,
+                EntityData = entityData
+            },
+            
+            Order order => new OrderAudit
+            {
+                ChangeType = changeType,
+                ChangedAt = timeStamp,
+                RecordId = order.Id,
+                EntityData = entityData
+            },
+            
+            Supplier supplier => new SupplierAudit
+            {
+                ChangeType = changeType,
+                ChangedAt = timeStamp,
+                RecordId = supplier.Id,
+                EntityData = entityData
+            },
+            
+            User user => new UserAudit
+            {
+                ChangeType = changeType,
+                ChangedAt = timeStamp,
+                RecordId = user.Id,
+                EntityData = entityData
+            },
+            
+            _ => throw new NotSupportedException($"Unsupported entity type: {entry.Entity.GetType().Name}")
+        };
+        
+        auditContext.Add(auditEntry);
     }
 }

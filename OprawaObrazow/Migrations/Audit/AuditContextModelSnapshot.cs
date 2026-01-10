@@ -22,7 +22,7 @@ namespace OprawaObrazow.Migrations.Audit
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("OprawaObrazow.Data.AuditModels.ClientAudit", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Color.ColorAudit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -50,45 +50,12 @@ namespace OprawaObrazow.Migrations.Audit
                         .HasColumnName("record_id");
 
                     b.HasKey("Id")
-                        .HasName("clients_pk");
+                        .HasName("colors_pk");
 
-                    b.ToTable("clients", "oprawa_audit");
+                    b.ToTable("colors", "oprawa_audit");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.AuditModels.DeliveryAudit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ChangeType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("change_type");
-
-                    b.Property<DateTime>("ChangedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("changed_at");
-
-                    b.Property<string>("EntityData")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("entity_data");
-
-                    b.Property<int>("RecordId")
-                        .HasColumnType("int")
-                        .HasColumnName("record_id");
-
-                    b.HasKey("Id")
-                        .HasName("deliveries_pk");
-
-                    b.ToTable("deliveries", "oprawa_audit");
-                });
-
-            modelBuilder.Entity("OprawaObrazow.Data.AuditModels.FrameAudit", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Frame.FrameAudit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -121,7 +88,7 @@ namespace OprawaObrazow.Migrations.Audit
                     b.ToTable("frames", "oprawa_audit");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.AuditModels.FramePieceAudit", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.FramePiece.FramePieceAudit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -154,7 +121,7 @@ namespace OprawaObrazow.Migrations.Audit
                     b.ToTable("frame_pieces", "oprawa_audit");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.AuditModels.OrderAudit", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Order.OrderAudit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -187,7 +154,7 @@ namespace OprawaObrazow.Migrations.Audit
                     b.ToTable("orders", "oprawa_audit");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.AuditModels.SupplierAudit", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Supplier.SupplierAudit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -220,7 +187,7 @@ namespace OprawaObrazow.Migrations.Audit
                     b.ToTable("suppliers", "oprawa_audit");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.AuditModels.UserAudit", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.User.UserAudit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

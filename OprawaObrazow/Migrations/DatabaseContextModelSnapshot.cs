@@ -22,7 +22,7 @@ namespace OprawaObrazow.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Client", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Color.Color", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -31,72 +31,23 @@ namespace OprawaObrazow.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("EmailAddress")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("email_address");
-
-                    b.Property<string>("FirstName")
+                    b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("first_name");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("last_name");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)")
-                        .HasColumnName("phone_number");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("name")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.HasKey("Id")
-                        .HasName("clients_pk");
+                        .HasName("colors_pk");
 
-                    b.ToTable("clients", "oprawa");
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("colors", "oprawa");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Delivery", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly>("DateDue")
-                        .HasColumnType("date")
-                        .HasColumnName("date_due");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<bool>("IsDelivered")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_delivered");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("int")
-                        .HasColumnName("supplier_id");
-
-                    b.HasKey("Id")
-                        .HasName("deliveries_pk");
-
-                    b.HasIndex(new[] { "SupplierId" }, "IX_deliveries_supplier_id");
-
-                    b.ToTable("deliveries", "oprawa");
-                });
-
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Frame", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Frame.Frame", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -109,11 +60,12 @@ namespace OprawaObrazow.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
-                        .HasColumnName("code");
+                        .HasColumnName("code")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
-                    b.Property<int>("Color")
+                    b.Property<int>("ColorId")
                         .HasColumnType("int")
-                        .HasColumnName("color");
+                        .HasColumnName("color_id");
 
                     b.Property<bool>("HasDecoration")
                         .HasColumnType("bit")
@@ -127,11 +79,6 @@ namespace OprawaObrazow.Migrations
                         .HasColumnType("decimal(18, 0)")
                         .HasColumnName("price");
 
-                    b.Property<string>("StorageLocation")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("storage_location");
-
                     b.Property<int>("SupplierId")
                         .HasColumnType("int")
                         .HasColumnName("supplier_id");
@@ -143,12 +90,19 @@ namespace OprawaObrazow.Migrations
                     b.HasKey("Id")
                         .HasName("frame_pk");
 
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("frames_code_unique")
+                        .HasFilter("[code] IS NOT NULL");
+
+                    b.HasIndex(new[] { "ColorId" }, "IX_frames_color_id");
+
                     b.HasIndex(new[] { "SupplierId" }, "IX_frames_supplier_id");
 
                     b.ToTable("frames", "oprawa");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.FramePiece", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.FramePiece.FramePiece", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -156,10 +110,6 @@ namespace OprawaObrazow.Migrations
                         .HasColumnName("id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DeliveryId")
-                        .HasColumnType("int")
-                        .HasColumnName("delivery_id");
 
                     b.Property<int>("FrameId")
                         .HasColumnType("int")
@@ -188,12 +138,11 @@ namespace OprawaObrazow.Migrations
                     b.Property<string>("StorageLocation")
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)")
-                        .HasColumnName("storage_location");
+                        .HasColumnName("storage_location")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.HasKey("Id")
                         .HasName("frame_pieces_pk");
-
-                    b.HasIndex(new[] { "DeliveryId" }, "IX_frame_pieces_delivery_id");
 
                     b.HasIndex(new[] { "FrameId" }, "IX_frame_pieces_frame_id");
 
@@ -202,7 +151,7 @@ namespace OprawaObrazow.Migrations
                     b.ToTable("frame_pieces", "oprawa");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Order", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Order.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -211,58 +160,15 @@ namespace OprawaObrazow.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ClientId")
-                        .HasColumnType("int")
-                        .HasColumnName("client_id");
+                    b.Property<string>("ClientName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("client_name");
 
                     b.Property<DateOnly>("DateDue")
                         .HasColumnType("date")
                         .HasColumnName("date_due");
-
-                    b.Property<bool>("IsClosed")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_closed");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<bool>("IsFinished")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_finished");
-
-                    b.Property<int>("PictureHeight")
-                        .HasColumnType("int")
-                        .HasColumnName("picture_height");
-
-                    b.Property<int>("PictureWidth")
-                        .HasColumnType("int")
-                        .HasColumnName("picture_width");
-
-                    b.Property<DateOnly?>("PlannedDate")
-                        .HasColumnType("date")
-                        .HasColumnName("planned_date");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18, 0)")
-                        .HasColumnName("price");
-
-                    b.HasKey("Id")
-                        .HasName("orders_pk");
-
-                    b.HasIndex(new[] { "ClientId" }, "IX_orders_client_id");
-
-                    b.ToTable("orders", "oprawa");
-                });
-
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Supplier", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("EmailAddress")
                         .HasMaxLength(50)
@@ -273,20 +179,48 @@ namespace OprawaObrazow.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("is_deleted");
 
-                    b.Property<DateOnly?>("LastSupply")
-                        .HasColumnType("date")
-                        .HasColumnName("last_supply");
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)")
+                        .HasColumnName("phone_number");
+
+                    b.Property<int>("PictureHeight")
+                        .HasColumnType("int")
+                        .HasColumnName("picture_height");
+
+                    b.Property<int>("PictureWidth")
+                        .HasColumnType("int")
+                        .HasColumnName("picture_width");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 0)")
+                        .HasColumnName("price");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("orders_pk");
+
+                    b.ToTable("orders", "oprawa");
+                });
+
+            modelBuilder.Entity("OprawaObrazow.Data.Supplier.Supplier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")
-                        .HasColumnName("name");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)")
-                        .HasColumnName("phone_number");
+                        .HasColumnName("name")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.HasKey("Id")
                         .HasName("suppliers_pk");
@@ -294,7 +228,7 @@ namespace OprawaObrazow.Migrations
                     b.ToTable("suppliers", "oprawa");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.User", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.User.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -322,7 +256,8 @@ namespace OprawaObrazow.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
-                        .HasColumnName("username");
+                        .HasColumnName("username")
+                        .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.HasKey("Id")
                         .HasName("users_pk");
@@ -333,89 +268,60 @@ namespace OprawaObrazow.Migrations
                     b.ToTable("users", "oprawa");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Delivery", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Frame.Frame", b =>
                 {
-                    b.HasOne("OprawaObrazow.Data.Models.Supplier", "Supplier")
-                        .WithMany("Deliveries")
-                        .HasForeignKey("SupplierId")
-                        .IsRequired()
-                        .HasConstraintName("deliveries_suppliers_fk");
+                    b.HasOne("OprawaObrazow.Data.Color.Color", "Color")
+                        .WithMany("Frames")
+                        .HasForeignKey("ColorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Frame", b =>
-                {
-                    b.HasOne("OprawaObrazow.Data.Models.Supplier", "Supplier")
+                    b.HasOne("OprawaObrazow.Data.Supplier.Supplier", "Supplier")
                         .WithMany("Frames")
                         .HasForeignKey("SupplierId")
                         .IsRequired()
                         .HasConstraintName("frame_suppliers_id_fk");
 
+                    b.Navigation("Color");
+
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.FramePiece", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.FramePiece.FramePiece", b =>
                 {
-                    b.HasOne("OprawaObrazow.Data.Models.Delivery", "Delivery")
-                        .WithMany("FramePieces")
-                        .HasForeignKey("DeliveryId")
-                        .IsRequired()
-                        .HasConstraintName("frame_pieces_deliveries_fk");
-
-                    b.HasOne("OprawaObrazow.Data.Models.Frame", "Frame")
+                    b.HasOne("OprawaObrazow.Data.Frame.Frame", "Frame")
                         .WithMany("FramePieces")
                         .HasForeignKey("FrameId")
                         .IsRequired()
                         .HasConstraintName("frame_pieces_frame_id_fk");
 
-                    b.HasOne("OprawaObrazow.Data.Models.Order", "Order")
+                    b.HasOne("OprawaObrazow.Data.Order.Order", "Order")
                         .WithMany("FramePieces")
                         .HasForeignKey("OrderId")
                         .HasConstraintName("frame_pieces_orders_id_fk");
-
-                    b.Navigation("Delivery");
 
                     b.Navigation("Frame");
 
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Order", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Color.Color", b =>
                 {
-                    b.HasOne("OprawaObrazow.Data.Models.Client", "Client")
-                        .WithMany("Orders")
-                        .HasForeignKey("ClientId")
-                        .IsRequired()
-                        .HasConstraintName("orders_clients_id_fk");
-
-                    b.Navigation("Client");
+                    b.Navigation("Frames");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Client", b =>
-                {
-                    b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Delivery", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Frame.Frame", b =>
                 {
                     b.Navigation("FramePieces");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Frame", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Order.Order", b =>
                 {
                     b.Navigation("FramePieces");
                 });
 
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Order", b =>
+            modelBuilder.Entity("OprawaObrazow.Data.Supplier.Supplier", b =>
                 {
-                    b.Navigation("FramePieces");
-                });
-
-            modelBuilder.Entity("OprawaObrazow.Data.Models.Supplier", b =>
-                {
-                    b.Navigation("Deliveries");
-
                     b.Navigation("Frames");
                 });
 #pragma warning restore 612, 618

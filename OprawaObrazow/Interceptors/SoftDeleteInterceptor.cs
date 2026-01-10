@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using OprawaObrazow.Data.Models;
+using OprawaObrazow.Data.Base;
 
 namespace OprawaObrazow.Interceptors;
 

@@ -70,7 +70,7 @@ public class FramePieceService( IBaseRepository<Data.FramePiece.FramePiece> repo
     {
       var orderIdProperty = Expression.Property( parameter, nameof( Data.FramePiece.FramePiece.OrderId ) );
       expression = Expression.AndAlso( expression,
-        Expression.Equal( orderIdProperty, Expression.Constant( filters.OrderId.Value ) ) );
+        Expression.Equal( orderIdProperty, Expression.Constant( filters.OrderId, typeof( int? ) ) ) );
     }
 
     if ( filters.IsDamaged is not null )

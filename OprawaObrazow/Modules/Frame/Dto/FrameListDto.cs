@@ -1,4 +1,5 @@
-﻿namespace OprawaObrazow.Modules.Frame.Dto;
+﻿using OprawaObrazow.Modules.FramePiece.Dto;
+namespace OprawaObrazow.Modules.Frame.Dto;
 
 public class FrameListDto
 {
@@ -9,4 +10,5 @@ public class FrameListDto
   public int Width { get; set; }
   public decimal Price { get; set; }
   public string ColorName { get; set; } = null!;
+  public List<FramePieceViewDto> FramePieces { get; set; } = [];
 }

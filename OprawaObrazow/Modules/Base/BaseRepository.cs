@@ -14,8 +14,17 @@ public interface IBaseRepository<T> where T : class
   params Expression<Func<T, object>>[] includes
   );
 
+  Task<(IEnumerable<T> items, int totalCount)> GetAllIncludeAsync(
+  Expression<Func<T, bool>>? filter = null,
+  Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+  int? skip = null,
+  int? take = null,
+  params string[] includes
+  );
+
   Task<T?> GetByIdAsync( int id );
   Task<T?> GetByIdNoTrackingAsync( int id, params Expression<Func<T, object>>[] includes );
+  Task<T?> GetByIdNoTrackingIncludeAsync( int id, params string[] includes );
   Task AddAsync( T entity );
   Task UpdateAsync( T entity );
   Task DeleteAsync( T entity );
@@ -49,9 +58,41 @@ public class BaseRepository<T>( DatabaseContext dbContext ) : IBaseRepository<T>
     return ( items, totalCount );
   }
 
+  public async Task<(IEnumerable<T> items, int totalCount)> GetAllIncludeAsync( Expression<Func<T, bool>>? filter = null,
+  Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, int? skip = null, int? take = null,
+  params string[] includes )
+  {
+    var query = _dbSet.AsNoTracking();
+
+    if ( includes.Length != 0 ) query = includes.Aggregate( query, ( current, include ) => current.Include( include ) );
+
+    if ( filter is not null ) query = query.Where( filter );
+
+    var totalCount = await query.CountAsync();
+
+    if ( orderBy is not null ) query = orderBy( query );
+
+    if ( skip is not null ) query = query.Skip( skip.Value );
+
+    if ( take is not null ) query = query.Take( take.Value );
+
+    var items = await query.ToListAsync();
+
+    return ( items, totalCount );
+  }
+
   public async Task<T?> GetByIdAsync( int id ) => await _dbSet.FindAsync( id );
 
   public async Task<T?> GetByIdNoTrackingAsync( int id, params Expression<Func<T, object>>[] includes )
+  {
+    var query = _dbSet.AsNoTracking();
+
+    if ( includes.Length != 0 ) query = includes.Aggregate( query, ( current, include ) => current.Include( include ) );
+
+    return await query.FirstOrDefaultAsync( e => EF.Property<int>( e, "Id" ) == id );
+  }
+
+  public async Task<T?> GetByIdNoTrackingIncludeAsync( int id, params string[] includes )
   {
     var query = _dbSet.AsNoTracking();
 

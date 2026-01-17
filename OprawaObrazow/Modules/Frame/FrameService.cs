@@ -13,8 +13,7 @@ public class FrameService( IBaseRepository<Data.Frame.Frame> repository, IMapper
 {
   public override async Task<FrameViewDto?> GetByIdAsync( int id )
   {
-    var entity = await repository.GetByIdNoTrackingAsync( id, frame => frame.Supplier, frame => frame.Color,
-      frame => frame.FramePieces );
+    var entity = await repository.GetByIdNoTrackingIncludeAsync( id, "Supplier", "Color", "FramePieces" );
     return entity is null ? null : mapper.Map<FrameViewDto>( entity );
   }
 
@@ -25,10 +24,8 @@ public class FrameService( IBaseRepository<Data.Frame.Frame> repository, IMapper
     var skip = ( filters.Page - 1 ) * filters.PageSize;
 
     var (items, totalCount) =
-      await repository.GetAllAsync( filterExpression, orderByExpression, skip, filters.PageSize,
-        frame => frame.Supplier,
-        frame => frame.Color,
-        frame => frame.FramePieces );
+      await repository.GetAllIncludeAsync( filterExpression, orderByExpression, skip, filters.PageSize,
+        "Supplier", "Color", "FramePieces" );
 
     return new BaseListResponse<FrameListDto>
     {

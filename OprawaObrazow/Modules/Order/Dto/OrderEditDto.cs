@@ -6,7 +6,7 @@ public class OrderEditDto
 {
   public int? Id { get; set; }
 
-  [Range( 0, double.MaxValue, ErrorMessage = "Cena nie może być ujemna." )]
+  [Range( 0, 100000, ErrorMessage = "Cena nie może być ujemna." )]
   public decimal Price { get; set; }
 
   [Required]

@@ -9,4 +9,5 @@ public class FramePieceViewDto
   public bool IsInStock { get; set; }
   public int? OrderId { get; set; }
   public int FrameId { get; set; }
+  public string FrameCode { get; set; } = null!;
 }

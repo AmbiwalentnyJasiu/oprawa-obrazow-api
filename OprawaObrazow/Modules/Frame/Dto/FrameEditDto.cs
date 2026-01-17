@@ -21,7 +21,7 @@ public class FrameEditDto
   public int Width { get; set; }
 
   [Required]
-  [Range( 0, ( double )decimal.MaxValue, ErrorMessage = "Cena nie może być ujemna." )]
+  [Range( 0, 100000, ErrorMessage = "Cena nie może być ujemna." )]
   public decimal Price { get; set; }
 
   [Required]

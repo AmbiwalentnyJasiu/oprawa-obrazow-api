@@ -114,19 +114,20 @@ public class FramePieceServiceTests
       MaxLength = 150
     };
 
-    _repositoryMock.Setup( r => r.GetAllAsync(
+    _repositoryMock.Setup( r => r.GetAllIncludeAsync(
                      It.IsAny<Expression<Func<Data.FramePiece.FramePiece, bool>>>(),
                      It.IsAny<Func<IQueryable<Data.FramePiece.FramePiece>,
                        IOrderedQueryable<Data.FramePiece.FramePiece>>>(),
                      It.IsAny<int>(),
-                     It.IsAny<int>() ) )
+                     It.IsAny<int>(),
+                     It.IsAny<string[]>() ) )
                    .ReturnsAsync( ( new List<Data.FramePiece.FramePiece>(), 0 ) );
 
     // Act
     await _sut.GetAllAsync( filters );
 
     // Assert
-    _repositoryMock.Verify( r => r.GetAllAsync(
+    _repositoryMock.Verify( r => r.GetAllIncludeAsync(
       It.Is<Expression<Func<Data.FramePiece.FramePiece, bool>>>( exp =>
         exp.ToString().Contains( "FrameId == 1" ) &&
         exp.ToString().Contains( "OrderId == 10" ) &&
@@ -138,7 +139,8 @@ public class FramePieceServiceTests
       ),
       It.IsAny<Func<IQueryable<Data.FramePiece.FramePiece>, IOrderedQueryable<Data.FramePiece.FramePiece>>>(),
       It.IsAny<int>(),
-      It.IsAny<int>() ), Times.Once );
+      It.IsAny<int>(),
+      It.IsAny<string[]>() ), Times.Once );
   }
 
   [Fact]
@@ -150,24 +152,26 @@ public class FramePieceServiceTests
       Sort = "length desc"
     };
 
-    _repositoryMock.Setup( r => r.GetAllAsync(
+    _repositoryMock.Setup( r => r.GetAllIncludeAsync(
                      It.IsAny<Expression<Func<Data.FramePiece.FramePiece, bool>>>(),
                      It.IsAny<Func<IQueryable<Data.FramePiece.FramePiece>,
                        IOrderedQueryable<Data.FramePiece.FramePiece>>>(),
                      It.IsAny<int>(),
-                     It.IsAny<int>() ) )
+                     It.IsAny<int>(),
+                     It.IsAny<string[]>() ) )
                    .ReturnsAsync( ( new List<Data.FramePiece.FramePiece>(), 0 ) );
 
     // Act
     await _sut.GetAllAsync( filters );
 
     // Assert
-    _repositoryMock.Verify( r => r.GetAllAsync(
+    _repositoryMock.Verify( r => r.GetAllIncludeAsync(
       It.IsAny<Expression<Func<Data.FramePiece.FramePiece, bool>>>(),
       It.Is<Func<IQueryable<Data.FramePiece.FramePiece>, IOrderedQueryable<Data.FramePiece.FramePiece>>>( sort =>
         sort != null
       ),
       It.IsAny<int>(),
-      It.IsAny<int>() ), Times.Once );
+      It.IsAny<int>(),
+      It.IsAny<string[]>() ), Times.Once );
   }
 }

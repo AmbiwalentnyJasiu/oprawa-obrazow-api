@@ -63,7 +63,7 @@ public class OrderServiceTests
     // Arrange
     var id = 1;
     var order = new Data.Order.Order { Id = id };
-    _repositoryMock.Setup( r => r.GetByIdNoTrackingAsync( id, It.IsAny<Expression<Func<Data.Order.Order, object>>>() ) )
+    _repositoryMock.Setup( r => r.GetByIdNoTrackingIncludeAsync( id, It.IsAny<string[]>() ) )
                    .ReturnsAsync( order );
 
     // Act
@@ -71,7 +71,7 @@ public class OrderServiceTests
 
     // Assert
     result.Should().NotBeNull();
-    _repositoryMock.Verify( r => r.GetByIdNoTrackingAsync( id, It.IsAny<Expression<Func<Data.Order.Order, object>>>() ),
+    _repositoryMock.Verify( r => r.GetByIdNoTrackingIncludeAsync( id, It.Is<string[]>( s => s.Contains( "FramePieces.Frame" ) ) ),
       Times.Once );
   }
 

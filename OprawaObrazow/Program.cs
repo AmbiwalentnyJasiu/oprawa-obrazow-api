@@ -19,6 +19,18 @@ builder.Logging.ClearProviders();
 builder.Host.UseSerilog( ( context, configuration ) => configuration.ReadFrom.Configuration( context.Configuration ) );
 
 // Add services to the container.
+var allowedOrigins = builder.Configuration.GetSection( "AllowedOrigins" ).Get<string[]>() ?? [];
+
+builder.Services.AddCors( options =>
+{
+  options.AddDefaultPolicy( policy =>
+  {
+    policy.WithOrigins( allowedOrigins )
+          .AllowAnyHeader()
+          .AllowAnyMethod()
+          .AllowCredentials();
+  } );
+} );
 
 builder.Services.AddControllers();
 
@@ -94,6 +106,8 @@ if ( app.Environment.IsDevelopment() )
   app.MapOpenApi();
   app.MapGet( "/", () => Results.Redirect( "/openapi/v1.json" ) );
 }
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 

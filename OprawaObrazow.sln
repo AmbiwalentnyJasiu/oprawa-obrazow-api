@@ -5,6 +5,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14A91457-B4F1-48FA-BD77-499C84B7A3C2}"
 	ProjectSection(SolutionItems) = preProject
 		compose.yaml = compose.yaml
+		.github\workflows\master_oprawa-api.yml = .github\workflows\master_oprawa-api.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OprawaObrazow.Tests", "OprawaObrazow.Tests\OprawaObrazow.Tests.csproj", "{F8735949-9D00-40FC-BCF6-2261B13D6359}"

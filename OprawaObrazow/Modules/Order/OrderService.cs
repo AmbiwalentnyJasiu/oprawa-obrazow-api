@@ -28,7 +28,7 @@ public class OrderService( IBaseRepository<Data.Order.Order> repository, IMapper
 
   public override async Task<OrderViewDto?> GetByIdAsync( int id )
   {
-    var entity = await repository.GetByIdNoTrackingAsync( id, order => order.FramePieces );
+    var entity = await repository.GetByIdNoTrackingIncludeAsync( id, "FramePieces.Frame" );
     return entity is null ? null : mapper.Map<OrderViewDto>( entity );
   }
 

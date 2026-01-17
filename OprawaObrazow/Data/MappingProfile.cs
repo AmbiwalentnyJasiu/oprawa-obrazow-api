@@ -23,7 +23,8 @@ public class MappingProfile : Profile
     CreateMap<FrameEditDto, Frame.Frame>();
 
     // FramePiece
-    CreateMap<FramePiece.FramePiece, FramePieceViewDto>();
+    CreateMap<FramePiece.FramePiece, FramePieceViewDto>()
+      .ForMember( dest => dest.FrameCode, opt => opt.MapFrom( src => src.Frame.Code ) );
     CreateMap<FramePieceEditDto, FramePiece.FramePiece>();
 
     // Color

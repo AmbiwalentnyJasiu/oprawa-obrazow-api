@@ -86,19 +86,19 @@ public class FrameServiceTests
             HasDecoration = true
         };
 
-        _repositoryMock.Setup(r => r.GetAllAsync(
+        _repositoryMock.Setup(r => r.GetAllIncludeAsync(
                 It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, bool>>>(),
                 It.IsAny<System.Func<System.Linq.IQueryable<OprawaObrazow.Data.Frame.Frame>, System.Linq.IOrderedQueryable<OprawaObrazow.Data.Frame.Frame>>>(),
                 It.IsAny<int?>(),
                 It.IsAny<int?>(),
-                It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, object>>[]>()))
+                It.IsAny<string[]>()))
             .ReturnsAsync((new List<OprawaObrazow.Data.Frame.Frame>(), 0));
 
         // Act
         await _sut.GetAllAsync(filters);
 
         // Assert
-        _repositoryMock.Verify(r => r.GetAllAsync(
+        _repositoryMock.Verify(r => r.GetAllIncludeAsync(
             It.Is<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, bool>>>(exp =>
                 exp.ToString().Contains("Code.Contains(\"GOLD\")") &&
                 exp.ToString().Contains("ColorId == 1") &&
@@ -110,7 +110,7 @@ public class FrameServiceTests
             It.IsAny<System.Func<System.Linq.IQueryable<OprawaObrazow.Data.Frame.Frame>, System.Linq.IOrderedQueryable<OprawaObrazow.Data.Frame.Frame>>>(),
             It.IsAny<int?>(),
             It.IsAny<int?>(),
-            It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, object>>[]>()), Times.Once);
+            It.IsAny<string[]>()), Times.Once);
     }
 
     [Fact]
@@ -122,25 +122,66 @@ public class FrameServiceTests
             Sort = "width desc"
         };
 
-        _repositoryMock.Setup(r => r.GetAllAsync(
+        _repositoryMock.Setup(r => r.GetAllIncludeAsync(
                 It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, bool>>>(),
                 It.IsAny<System.Func<System.Linq.IQueryable<OprawaObrazow.Data.Frame.Frame>, System.Linq.IOrderedQueryable<OprawaObrazow.Data.Frame.Frame>>>(),
                 It.IsAny<int?>(),
                 It.IsAny<int?>(),
-                It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, object>>[]>()))
+                It.IsAny<string[]>()))
             .ReturnsAsync((new List<OprawaObrazow.Data.Frame.Frame>(), 0));
 
         // Act
         await _sut.GetAllAsync(filters);
 
         // Assert
-        _repositoryMock.Verify(r => r.GetAllAsync(
+        _repositoryMock.Verify(r => r.GetAllIncludeAsync(
             It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, bool>>>(),
             It.Is<System.Func<System.Linq.IQueryable<OprawaObrazow.Data.Frame.Frame>, System.Linq.IOrderedQueryable<OprawaObrazow.Data.Frame.Frame>>>(sort =>
                 sort != null
             ),
             It.IsAny<int?>(),
             It.IsAny<int?>(),
-            It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, object>>[]>()), Times.Once);
+            It.IsAny<string[]>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldIncludeFramePieces()
+    {
+        // Arrange
+        var filters = new FrameFiltersDto();
+        var frame = new OprawaObrazow.Data.Frame.Frame
+        {
+            Id = 1,
+            Code = "F1",
+            Supplier = new OprawaObrazow.Data.Supplier.Supplier { Name = "S1" },
+            Color = new OprawaObrazow.Data.Color.Color { Name = "C1" },
+            FramePieces = new List<OprawaObrazow.Data.FramePiece.FramePiece>
+            {
+                new() { Id = 10, Length = 100, FrameId = 1 }
+            }
+        };
+
+        _repositoryMock.Setup(r => r.GetAllIncludeAsync(
+                It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, bool>>>(),
+                It.IsAny<System.Func<System.Linq.IQueryable<OprawaObrazow.Data.Frame.Frame>, System.Linq.IOrderedQueryable<OprawaObrazow.Data.Frame.Frame>>>(),
+                It.IsAny<int?>(),
+                It.IsAny<int?>(),
+                It.IsAny<string[]>()))
+            .ReturnsAsync((new List<OprawaObrazow.Data.Frame.Frame> { frame }, 1));
+
+        // Act
+        var result = await _sut.GetAllAsync(filters);
+
+        // Assert
+        result.Items.Should().HaveCount(1);
+        result.Items.First().FramePieces.Should().HaveCount(1);
+        result.Items.First().FramePieces.First().Id.Should().Be(10);
+        
+        _repositoryMock.Verify(r => r.GetAllIncludeAsync(
+            It.IsAny<System.Linq.Expressions.Expression<System.Func<OprawaObrazow.Data.Frame.Frame, bool>>>(),
+            It.IsAny<System.Func<System.Linq.IQueryable<OprawaObrazow.Data.Frame.Frame>, System.Linq.IOrderedQueryable<OprawaObrazow.Data.Frame.Frame>>>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.Is<string[]>(includes => includes.Contains("FramePieces"))), Times.Once);
     }
 }

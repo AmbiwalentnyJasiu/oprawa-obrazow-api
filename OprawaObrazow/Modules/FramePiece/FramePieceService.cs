@@ -16,6 +16,28 @@ public class FramePieceService( IBaseRepository<Data.FramePiece.FramePiece> repo
   : BaseService<Data.FramePiece.FramePiece, FramePieceEditDto, FramePieceViewDto, FramePieceViewDto,
     FramePieceFiltersDto>( repository, mapper ), IFramePieceService
 {
+  public override async Task<FramePieceViewDto?> GetByIdAsync( int id )
+  {
+    var entity = await repository.GetByIdNoTrackingIncludeAsync( id, "Frame" );
+    return entity is null ? null : mapper.Map<FramePieceViewDto>( entity );
+  }
+
+  public new async Task<BaseListResponse<FramePieceViewDto>> GetAllAsync( FramePieceFiltersDto filters )
+  {
+    var filterExpression = GetFilterExpression( filters );
+    var orderByExpression = GetOrderByExpression( filters );
+    var skip = ( filters.Page - 1 ) * filters.PageSize;
+
+    var (items, totalCount) =
+      await repository.GetAllIncludeAsync( filterExpression, orderByExpression, skip, filters.PageSize, "Frame" );
+
+    return new BaseListResponse<FramePieceViewDto>
+    {
+      Count = totalCount,
+      Items = items.Select( mapper.Map<FramePieceViewDto> )
+    };
+  }
+
   public async Task AttachToOrder( int id, int orderId )
   {
     var entity = await repository.GetByIdAsync( id );
